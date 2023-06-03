@@ -17,5 +17,16 @@
 After subjecting the script to VirusTotal analysis, I discovered that no vendors had flagged it (as of May 31, 2023), indicating it was a new sample.</description>
     </item>
     
+    <item>
+      <title>Ingesting Pi-Hole DNS Logs into Falcon LogScale</title>
+      <link>https://blog.anushanlingam.com/posts/20230210-piholelogscale/</link>
+      <pubDate>Fri, 10 Feb 2023 15:15:34 +0100</pubDate>
+      
+      <guid>https://blog.anushanlingam.com/posts/20230210-piholelogscale/</guid>
+      <description>A Python based CLI Tool and accompanying Logscale parsers to extract DNS query logs from the long-term query database of a Pihole instance and ingest them into the Falcon Logscale (Humio) platform.
+View the GitHub Repository
+Usage This will retrieve the last x amount of messages depending on the options you configure (e.g. last 5 minutes) and send them to your logscale instance via the ingest api. Set this script to run as a scheduled task or cron job to retrieve your DNS queries at regular intervals.</description>
+    </item>
+    
   </channel>
 </rss>

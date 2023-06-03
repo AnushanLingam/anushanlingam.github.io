@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Anushan Lingam</title>
-    <link>https://blog.anushanlingam.com/</link>
-    <description>Recent content on Anushan Lingam</description>
+    <title>Posts on Anushan Lingam</title>
+    <link>https://blog.anushanlingam.com/posts/</link>
+    <description>Recent content in Posts on Anushan Lingam</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-gb</language>
-    <lastBuildDate>Sat, 03 Jun 2023 09:10:30 +0100</lastBuildDate><atom:link href="https://blog.anushanlingam.com/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 03 Jun 2023 09:10:30 +0100</lastBuildDate><atom:link href="https://blog.anushanlingam.com/posts/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Analysing a NetSupport RAT Sample</title>
       <link>https://blog.anushanlingam.com/posts/20230603_netsupport_rat/</link>

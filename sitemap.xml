@@ -2,19 +2,25 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://blog.anushanlingam.com/</loc>
+    <lastmod>2023-06-10T11:23:07+01:00</lastmod>
+  </url><url>
+    <loc>https://blog.anushanlingam.com/tags/c2/</loc>
+    <lastmod>2023-06-10T11:23:07+01:00</lastmod>
+  </url><url>
+    <loc>https://blog.anushanlingam.com/posts/20230610-graylogc2/</loc>
+    <lastmod>2023-06-10T11:23:07+01:00</lastmod>
+  </url><url>
+    <loc>https://blog.anushanlingam.com/posts/</loc>
+    <lastmod>2023-06-10T11:23:07+01:00</lastmod>
+  </url><url>
+    <loc>https://blog.anushanlingam.com/tags/</loc>
+    <lastmod>2023-06-10T11:23:07+01:00</lastmod>
+  </url><url>
     <loc>https://blog.anushanlingam.com/posts/20230603_netsupport_rat/</loc>
     <lastmod>2023-06-03T09:10:30+01:00</lastmod>
   </url><url>
-    <loc>https://blog.anushanlingam.com/</loc>
-    <lastmod>2023-06-03T09:10:30+01:00</lastmod>
-  </url><url>
-    <loc>https://blog.anushanlingam.com/posts/</loc>
-    <lastmod>2023-06-03T09:10:30+01:00</lastmod>
-  </url><url>
     <loc>https://blog.anushanlingam.com/tags/rat/</loc>
-    <lastmod>2023-06-03T09:10:30+01:00</lastmod>
-  </url><url>
-    <loc>https://blog.anushanlingam.com/tags/</loc>
     <lastmod>2023-06-03T09:10:30+01:00</lastmod>
   </url><url>
     <loc>https://blog.anushanlingam.com/posts/20230210-piholelogscale/</loc>

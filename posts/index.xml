@@ -6,7 +6,17 @@
     <description>Recent content in Posts on Anushan Lingam</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-gb</language>
-    <lastBuildDate>Sat, 03 Jun 2023 09:10:30 +0100</lastBuildDate><atom:link href="https://blog.anushanlingam.com/posts/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 10 Jun 2023 11:23:07 +0100</lastBuildDate><atom:link href="https://blog.anushanlingam.com/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Graylog Sidecar as a C2 Beacon</title>
+      <link>https://blog.anushanlingam.com/posts/20230610-graylogc2/</link>
+      <pubDate>Sat, 10 Jun 2023 11:23:07 +0100</pubDate>
+      
+      <guid>https://blog.anushanlingam.com/posts/20230610-graylogc2/</guid>
+      <description>Introduction Imagine you&amp;rsquo;ve successfully gained access to a host and have escalated to a local admin. Now, your objective is to establish a beacon for remote command execution. While there are numerous C2 frameworks available online for this purpose, let&amp;rsquo;s make things interesting by abusing a legitimate tool instead.
+Graylog is an open-source log management solution. One component of this product is the &amp;lsquo;Sidecar&amp;rsquo; agent, which can be likened to Splunk&amp;rsquo;s &amp;lsquo;Universal Forwarder.</description>
+    </item>
+    
     <item>
       <title>Analysing a NetSupport RAT Sample</title>
       <link>https://blog.anushanlingam.com/posts/20230603_netsupport_rat/</link>
